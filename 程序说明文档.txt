@@ -1,0 +1,37 @@
+环境说明：
+Python 3.6+
+pytorch 1.0
+librosa
+pyworld
+tensorboardX
+scikit-learn
+
+数据 VCC2016
+训练集 ./data/speakers
+测试集 ./data/speakers_test
+
+文件夹构成
+data
+├── speakers  (training set)
+│   ├── SF1
+│   ├── SF2
+│   ├── TM1
+│   └── TM2
+├── speakers_test (testing set)
+│   ├── SF1
+│   ├── SF2
+│   ├── TM1
+│   └── TM2
+
+训练前准备(提取mcep，f0，ap)
+python preprocess.py
+
+训练阶段
+python main.py
+
+转换阶段
+python main.py --mode test --test_iters 200000 --src_speaker TM1 --trg_speaker "['TM1','SF1']"
+
+--test_iters 迭代次数 根据实验比较得到最好的迭代次数
+--src_speaker 源说话人
+--trg_speaker 目标说话人

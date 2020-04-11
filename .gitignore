@@ -1,0 +1,7 @@
+data/
+starganvc/
+etc/
+samples/
+__pycache__/
+.idea/
+.vscode/
