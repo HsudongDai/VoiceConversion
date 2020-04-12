@@ -89,27 +89,28 @@ class Normalizer(object) :
         return d
 
     def pitch_conversion(self, f0, source_speaker, target_speaker) :
-        '''Logarithm Gaussian normalization for Pitch Conversions'''
+        '''对数高斯正则化，用于进行音调转换'''
+        '''Logarithmic Gaussian normalization for Pitch Conversions'''
 
         mean_log_src = self.norm_dict[source_speaker]['log_f0s_mean']
         std_log_src = self.norm_dict[source_speaker]['log_f0s_std']
 
         mean_log_target = self.norm_dict[target_speaker]['log_f0s_mean']
         std_log_target = self.norm_dict[target_speaker]['log_f0s_std']
-
+        # np.ma 就是maskArray，会自动屏蔽到NaN这种数值，确保计算得以进行下去而不是产生错误
         f0_converted = np.exp((np.ma.log(f0) - mean_log_src) / std_log_src * std_log_target + mean_log_target)
 
         return f0_converted
 
 
 class GenerateStatistics(object) :
-    def __init__(self, folder: str = '.\data\processed') :
+    def __init__(self, folder: str = './data/processed') :
         self.folder = folder
         self.include_dict_npz = {}
         for s in speakers :
             if not self.include_dict_npz.__contains__(s) :
                 self.include_dict_npz[s] = []
-
+            # 加载训练好的npz格式模型
             for one_file in os.listdir(folder) :
                 if one_file.startswith(s) and one_file.endswith('npz') :
                     self.include_dict_npz[s].append(one_file)
@@ -117,6 +118,8 @@ class GenerateStatistics(object) :
     @staticmethod
     def coded_sp_statistics(coded_sps) :
         # sp shape (D, T)
+        # axis=1是按行切割求平均数/标准差
+        # keepdims=False就是会继续导出一个数组
         coded_sps_concatenated = np.concatenate(coded_sps, axis=1)
         coded_sps_mean = np.mean(coded_sps_concatenated, axis=1, keepdims=False)
         coded_sps_std = np.std(coded_sps_concatenated, axis=1, keepdims=False)
@@ -131,12 +134,14 @@ class GenerateStatistics(object) :
         return log_f0s_mean, log_f0s_std
 
     def generate_stats(self, statfolder: str = 'etc') :
-        '''generate all user's statistics used for calutate normalized
-           input like sp, f0
-           step 1: generate coded_sp mean std
-           step 2: generate f0 mean std
-         '''
+        '''
+            generate all user's statistics used for calutate normalized
+            input like sp, f0
+            step 1: generate coded_sp mean std
+            step 2: generate f0 mean std
+        '''
         etc_path = os.path.join(os.path.realpath('.'), statfolder)
+        # exist_ok允许目标目录已经被创建的情况
         os.makedirs(etc_path, exist_ok=True)
 
         for one_speaker in self.include_dict_npz.keys() :

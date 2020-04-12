@@ -9,6 +9,7 @@ class Down2d(nn.Module) :
         super(Down2d, self).__init__()
 
         self.c1 = nn.Conv2d(in_channel, out_channel, kernel_size=kernel, stride=stride, padding=padding)
+        # eps=1e-05, momentum=0.1, affine=False, track_running_stats=False
         self.n1 = nn.InstanceNorm2d(out_channel)
         self.c2 = nn.Conv2d(in_channel, out_channel, kernel_size=kernel, stride=stride, padding=padding)
         self.n2 = nn.InstanceNorm2d(out_channel)
@@ -31,6 +32,7 @@ class Up2d(nn.Module) :
     def __init__(self, in_channel, out_channel, kernel, stride, padding) :
         super(Up2d, self).__init__()
         self.c1 = nn.ConvTranspose2d(in_channel, out_channel, kernel_size=kernel, stride=stride, padding=padding)
+        # InstanceNorm 是应用于像素上，对HW进行归一化
         self.n1 = nn.InstanceNorm2d(out_channel)
         self.c2 = nn.ConvTranspose2d(in_channel, out_channel, kernel_size=kernel, stride=stride, padding=padding)
         self.n2 = nn.InstanceNorm2d(out_channel)
@@ -41,7 +43,7 @@ class Up2d(nn.Module) :
 
         x2 = self.c2(x)
         x2 = self.n2(x2)
-
+        # 这个是对tensor的元素级别的操作
         x3 = x1 * torch.sigmoid(x2)
 
         return x3
@@ -53,13 +55,16 @@ class Generator(nn.Module) :
     def __init__(self) :
         super(Generator, self).__init__()
         self.downsample = nn.Sequential(
+            # input_channel, output_channel, kernel, stride, padding
+            # tuple的两个参数是分别用于height和width两个维度
+            # 卷积核是随机初始化的，里面的weight是动态更新的
             Down2d(1, 32, (3, 9), (1, 1), (1, 4)),
             Down2d(32, 64, (4, 8), (2, 2), (1, 3)),
             Down2d(64, 128, (4, 8), (2, 2), (1, 3)),
             Down2d(128, 64, (3, 5), (1, 1), (1, 2)),
             Down2d(64, 5, (9, 5), (9, 1), (1, 2))
         )
-
+        # 负责将卷积后的图片还原为原始图片
         self.up1 = Up2d(9, 64, (9, 5), (9, 1), (0, 2))
         self.up2 = Up2d(68, 128, (3, 5), (1, 1), (1, 2))
         self.up3 = Up2d(132, 64, (4, 8), (2, 2), (1, 3))
