@@ -1,3 +1,6 @@
+# G2GAN based on StarGAN-VC
+This repository is a model which conducts voice conversion by G2GAN. The model is based on previous StarGAN-VC job but adds an extra Generator with new loss function. The general structure and data preparation are inherited from previous repo.
+
 ## [StarGAN-VC](https://github.com/hujinsen/pytorch-StarGAN-VC)
 
 This is a pytorch implementation of the paper: [StarGAN-VC: Non-parallel many-to-many voice conversion with star generative adversarial networks](https://arxiv.org/abs/1806.02169).
